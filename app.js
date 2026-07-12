@@ -10,12 +10,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // 1. Countdown Timer (Closes in 3 Days)
 function initCountdown() {
-    const targetDate = new Date();
-    targetDate.setDate(targetDate.getDate() + 3); // 3 days from now for demonstration
+    const targetDate = new Date('September 9, 2026 23:59:59').getTime();
 
     function updateCountdown() {
         const now = new Date().getTime();
-        const difference = targetDate.getTime() - now;
+        const difference = targetDate - now;
 
         if (difference <= 0) {
             document.querySelector('.countdown-timer').innerHTML = "<h3>Registration Closed</h3>";
