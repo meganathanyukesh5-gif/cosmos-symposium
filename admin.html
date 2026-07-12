@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmos '26 | Admin Dashboard</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-dark: #050510;
+            --card-bg: rgba(12, 12, 32, 0.6);
+            --border-color: rgba(255, 255, 255, 0.06);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-cyan: #00f2fe;
+            --accent-purple: #8a2be2;
+            --accent-pink: #f35588;
+            --accent-gold: #ffaa00;
+            --grad-primary: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: linear-gradient(180deg, #07071c 0%, #04040c 100%);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+        }
+
+        /* Login Modal Screen */
+        .login-container {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 3rem;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+            position: relative;
+        }
+
+        .login-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            font-size: 1.6rem;
+            margin-bottom: 2rem;
+            letter-spacing: 1px;
+        }
+
+        .logo-icon {
+            color: var(--accent-cyan);
+            animation: rotateLogo 8s linear infinite;
+        }
+
+        @keyframes rotateLogo {
+            100% { transform: rotate(360deg); }
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .input-group input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            padding: 0.875rem 1.25rem;
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 10px rgba(0, 242, 254, 0.15);
+        }
+
+        .btn {
+            width: 100%;
+            background: var(--grad-primary);
+            color: #050510;
+            padding: 0.875rem;
+            font-weight: 700;
+            font-size: 0.95rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(0, 242, 254, 0.4);
+        }
+
+        .error-msg {
+            color: var(--accent-pink);
+            font-size: 0.85rem;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        /* Dashboard View (Hidden by default) */
+        .dashboard-container {
+            display: none;
+            width: 90%;
+            max-width: 1200px;
+            margin: 2rem auto;
+            align-self: flex-start;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-header h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.75rem;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+        }
+
+        .logout-btn {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.5rem 1.25rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.15);
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 1.5rem 2rem;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .stat-info h3 {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-secondary);
+            margin: 0 0 0.5rem;
+        }
+
+        .stat-info p {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--accent-cyan);
+            margin: 0;
+            text-shadow: 0 0 10px rgba(0, 242, 254, 0.25);
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .icon-blue {
+            background: rgba(0, 242, 254, 0.12);
+            color: var(--accent-cyan);
+        }
+
+        .icon-gold {
+            background: rgba(255, 170, 0, 0.12);
+            color: var(--accent-gold);
+        }
+
+        /* Controls Panel (Search & Actions) */
+        .controls-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 1.25rem 2rem;
+            border-radius: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .search-wrapper {
+            position: relative;
+            flex-grow: 1;
+            max-width: 400px;
+        }
+
+        .search-wrapper i {
+            position: absolute;
+            left: 1.25rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            width: 16px;
+            height: 16px;
+        }
+
+        .search-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            padding: 0.75rem 1.25rem 0.75rem 3rem;
+            border-radius: 50px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 10px rgba(0, 242, 254, 0.1);
+        }
+
+        .actions-wrapper {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .action-btn {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.15);
+        }
+
+        .action-btn.export-btn {
+            background: var(--grad-primary);
+            color: #050510;
+            border: none;
+        }
+
+        .action-btn.export-btn:hover {
+            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.25);
+        }
+
+        .action-btn.clear-btn {
+            color: var(--accent-pink);
+            border-color: rgba(243, 85, 136, 0.2);
+        }
+
+        .action-btn.clear-btn:hover {
+            background: rgba(243, 85, 136, 0.1);
+            border-color: var(--accent-pink);
+        }
+
+        /* Data Table */
+        .table-wrapper {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            overflow-x: auto;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.02);
+            color: var(--text-primary);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        td {
+            padding: 1.15rem 1.5rem;
+            color: var(--text-secondary);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.01);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                align-items: flex-start;
+            }
+            .dashboard-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            .controls-panel {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .search-wrapper {
+                max-width: 100%;
+            }
+            .actions-wrapper {
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- LOGIN SCREEN -->
+    <div id="loginScreen" class="login-container">
+        <div class="login-logo">
+            <i data-lucide="orbit" class="logo-icon"></i>
+            <span>COSMOS <span class="accent-text">ADMIN</span></span>
+        </div>
+        <form id="loginForm">
+            <div class="input-group">
+                <label for="adminPassword">Access Password</label>
+                <input type="password" id="adminPassword" required placeholder="••••••••">
+            </div>
+            <button type="submit" class="btn">
+                <span>Unlock Portal</span>
+                <i data-lucide="key-round"></i>
+            </button>
+            <div id="errorMsg" class="error-msg">Incorrect password. Please try again.</div>
+        </form>
+    </div>
+
+    <!-- DASHBOARD PANEL -->
+    <div id="dashboardScreen" class="dashboard-container">
+        <div class="dashboard-header">
+            <div>
+                <h1>Cosmos '26 Dashboard</h1>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.25rem;">Government College of Engineering, Bargur</p>
+            </div>
+            <button id="logoutBtn" class="logout-btn">Log Out</button>
+        </div>
+
+        <!-- Metrics Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-info">
+                    <h3>Total Registrations</h3>
+                    <p id="totalRegistrations">0</p>
+                </div>
+                <div class="stat-icon icon-blue">
+                    <i data-lucide="users"></i>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-info">
+                    <h3>Estimated Revenue</h3>
+                    <p id="totalRevenue">₹0</p>
+                </div>
+                <div class="stat-icon icon-gold">
+                    <i data-lucide="indian-rupee"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls (Search & Export) -->
+        <div class="controls-panel">
+            <div class="search-wrapper">
+                <i data-lucide="search"></i>
+                <input type="text" id="searchInput" class="search-input" placeholder="Search by name, college, email or ID...">
+            </div>
+            <div class="actions-wrapper">
+                <button id="exportCsvBtn" class="action-btn export-btn">
+                    <i data-lucide="download"></i>
+                    <span>Export to CSV</span>
+                </button>
+                <button id="clearDataBtn" class="action-btn clear-btn">
+                    <i data-lucide="trash-2"></i>
+                    <span>Clear Data</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Registrants Table -->
+        <div class="table-wrapper">
+            <table id="registrantsTable">
+                <thead>
+                    <tr>
+                        <th>S.No</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Mobile</th>
+                        <th>College</th>
+                        <th>Roll / Reg No</th>
+                        <th>Transaction ID</th>
+                        <th>Registration Date</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Dynamic entries -->
+                </tbody>
+            </table>
+            <div id="emptyState" class="empty-state" style="display: none;">
+                <i data-lucide="folder-open"></i>
+                <p>No registrations found matching the criteria.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            initLogin();
+            initDashboard();
+        });
+
+        // 1. Password Verification
+        function initLogin() {
+            const loginForm = document.getElementById('loginForm');
+            const passwordInput = document.getElementById('adminPassword');
+            const errorMsg = document.getElementById('errorMsg');
+            const loginScreen = document.getElementById('loginScreen');
+            const dashboardScreen = document.getElementById('dashboardScreen');
+
+            // Quick Session Check
+            if (sessionStorage.getItem('cosmos_admin_logged') === 'true') {
+                loginScreen.style.display = 'none';
+                dashboardScreen.style.display = 'block';
+                loadDashboardData();
+            }
+
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const pw = passwordInput.value.trim();
+
+                if (pw === 'admin123') {
+                    // Success Handshake
+                    sessionStorage.setItem('cosmos_admin_logged', 'true');
+                    errorMsg.style.display = 'none';
+                    loginScreen.style.display = 'none';
+                    dashboardScreen.style.display = 'block';
+                    loadDashboardData();
+                } else {
+                    errorMsg.style.display = 'block';
+                    passwordInput.value = '';
+                }
+            });
+        }
+
+        // 2. Dashboard Logic
+        let registrationsList = [];
+
+        function initDashboard() {
+            const logoutBtn = document.getElementById('logoutBtn');
+            const searchInput = document.getElementById('searchInput');
+            const exportCsvBtn = document.getElementById('exportCsvBtn');
+            const clearDataBtn = document.getElementById('clearDataBtn');
+
+            logoutBtn.addEventListener('click', () => {
+                sessionStorage.removeItem('cosmos_admin_logged');
+                window.location.reload();
+            });
+
+            // Live search keyup event
+            searchInput.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase().trim();
+                filterTable(query);
+            });
+
+            // Download CSV trigger
+            exportCsvBtn.addEventListener('click', () => {
+                exportToCSV();
+            });
+
+            // Reset database log
+            clearDataBtn.addEventListener('click', () => {
+                if (confirm("Are you sure you want to clear all registrations? This action is irreversible.")) {
+                    if (confirm("Type 'CONFIRM' to clear all data:")) {
+                        localStorage.removeItem('cosmos_registrations');
+                        loadDashboardData();
+                    }
+                }
+            });
+        }
+
+        // Load data from localStorage
+        function loadDashboardData() {
+            try {
+                registrationsList = JSON.parse(localStorage.getItem('cosmos_registrations')) || [];
+            } catch (e) {
+                registrationsList = [];
+                console.error("Local storage read error", e);
+            }
+            renderTable(registrationsList);
+            updateStats(registrationsList);
+        }
+
+        // Render registrations in table rows
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            const emptyState = document.getElementById('emptyState');
+            tbody.innerHTML = '';
+
+            if (data.length === 0) {
+                emptyState.style.display = 'block';
+                return;
+            }
+            emptyState.style.display = 'none';
+
+            data.forEach((reg, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td style="color: var(--text-primary); font-weight: 500;">${escapeHTML(reg.name)}</td>
+                    <td>${escapeHTML(reg.email)}</td>
+                    <td>${escapeHTML(reg.phone || 'N/A')}</td>
+                    <td>${escapeHTML(reg.college)}</td>
+                    <td>${escapeHTML(reg.regNo)}</td>
+                    <td style="font-family: monospace; color: var(--accent-cyan); font-size: 0.85rem;">${escapeHTML(reg.txnId)}</td>
+                    <td>${escapeHTML(reg.date)}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Update total registration and revenue stats cards
+        function updateStats(data) {
+            document.getElementById('totalRegistrations').innerText = data.length;
+            
+            // Calculate total revenue (Flat ₹300 per pass)
+            const revenue = data.length * 300;
+            document.getElementById('totalRevenue').innerText = `₹${revenue.toLocaleString()}`;
+        }
+
+        // Filter Table on Search query
+        function filterTable(query) {
+            if (!query) {
+                renderTable(registrationsList);
+                return;
+            }
+
+            const filtered = registrationsList.filter(reg => {
+                return (
+                    reg.name.toLowerCase().includes(query) ||
+                    reg.email.toLowerCase().includes(query) ||
+                    reg.college.toLowerCase().includes(query) ||
+                    reg.regNo.toLowerCase().includes(query) ||
+                    (reg.phone && reg.phone.includes(query)) ||
+                    reg.txnId.toLowerCase().includes(query)
+                );
+            });
+
+            renderTable(filtered);
+        }
+
+        // Convert JSON list to CSV file download
+        function exportToCSV() {
+            if (registrationsList.length === 0) {
+                alert("No registrations available to export!");
+                return;
+            }
+
+            // Headers
+            let csvContent = "S.No,Name,Email,Mobile,College,Roll / Reg No,Transaction ID,Registration Date\n";
+
+            // Row conversion
+            registrationsList.forEach((reg, index) => {
+                const row = [
+                    index + 1,
+                    `"${reg.name.replace(/"/g, '""')}"`,
+                    `"${reg.email.replace(/"/g, '""')}"`,
+                    `"${(reg.phone || '').replace(/"/g, '""')}"`,
+                    `"${reg.college.replace(/"/g, '""')}"`,
+                    `"${reg.regNo.replace(/"/g, '""')}"`,
+                    `"${reg.txnId.replace(/"/g, '""')}"`,
+                    `"${reg.date.replace(/"/g, '""')}"`
+                ];
+                csvContent += row.join(",") + "\n";
+            });
+
+            // Trigger download link
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", "cosmos_registrations.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Security escaping function to prevent HTML injection inside table rows
+        function escapeHTML(str) {
+            if (!str) return '';
+            return str.replace(/[&<>'"]/g, 
+                tag => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    "'": '&#39;',
+                    '"': '&quot;'
+                }[tag] || tag)
+            );
+        }
+    </script>
+</body>
+</html>

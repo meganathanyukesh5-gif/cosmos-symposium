@@ -108,13 +108,15 @@ function initPaymentFlow() {
     const modalName = document.getElementById('modalName');
     const modalCollege = document.getElementById('modalCollege');
     const modalReg = document.getElementById('modalReg');
+    const modalPhone = document.getElementById('modalPhone');
     const modalTxn = document.getElementById('modalTxn');
     
     // Temporary variables to store details
     let userData = {
         name: '',
         college: '',
-        regNo: ''
+        regNo: '',
+        phone: ''
     };
 
     // Card Input Auto-formatting helpers
@@ -157,6 +159,7 @@ function initPaymentFlow() {
 
         // Capture Registrant Fields
         userData.name = document.getElementById('fullName').value.trim();
+        userData.phone = document.getElementById('userPhone').value.trim();
         userData.college = document.getElementById('userCollege').value.trim();
         userData.regNo = document.getElementById('userRegNo').value.trim();
 
@@ -219,10 +222,30 @@ function initPaymentFlow() {
             modalName.innerText = userData.name;
             modalCollege.innerText = userData.college;
             modalReg.innerText = userData.regNo;
+            modalPhone.innerText = userData.phone;
             
             // Generate mock Txn code
             const randomCode = Math.floor(100000000 + Math.random() * 900000000);
-            modalTxn.innerText = `TXN-${randomCode}-GCEB`;
+            const txnId = `TXN-${randomCode}-GCEB`;
+            modalTxn.innerText = txnId;
+
+            // Save Registration to LocalStorage Database
+            try {
+                const registrations = JSON.parse(localStorage.getItem('cosmos_registrations')) || [];
+                const newRegistration = {
+                    name: userData.name,
+                    email: document.getElementById('emailAddress').value.trim(),
+                    phone: userData.phone,
+                    college: userData.college,
+                    regNo: userData.regNo,
+                    txnId: txnId,
+                    date: new Date().toLocaleString()
+                };
+                registrations.push(newRegistration);
+                localStorage.setItem('cosmos_registrations', JSON.stringify(registrations));
+            } catch (err) {
+                console.error("Local storage save failed:", err);
+            }
 
             // Open Success receipt modal
             successModal.classList.add('active');

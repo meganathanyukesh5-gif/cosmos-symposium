@@ -303,6 +303,10 @@
                                 <input type="email" id="emailAddress" required placeholder="john.doe@email.com">
                             </div>
                             <div class="input-group">
+                                <label for="userPhone">Mobile Number</label>
+                                <input type="tel" id="userPhone" required placeholder="e.g. 9876543210" pattern="[0-9]{10}">
+                            </div>
+                            <div class="input-group">
                                 <label for="userCollege">Your College / Institution</label>
                                 <input type="text" id="userCollege" required placeholder="e.g. St. Xavier's College">
                             </div>
@@ -341,6 +345,7 @@
                 <a href="#events">Events List</a>
                 <a href="#schedule">Schedule & Dates</a>
                 <a href="#register">Register Pass</a>
+                <a href="admin.html" class="nav-link admin-link" target="_blank"><i data-lucide="shield-check" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"></i>Admin Panel</a>
             </div>
             <div class="footer-newsletter">
                 <h5>Get Event Updates</h5>
@@ -462,6 +467,10 @@
                     <div class="receipt-row">
                         <span>Reg / Roll No:</span>
                         <strong id="modalReg">STJ/2026/CS-101</strong>
+                    </div>
+                    <div class="receipt-row">
+                        <span>Mobile No:</span>
+                        <strong id="modalPhone"></strong>
                     </div>
                     <div class="receipt-row">
                         <span>Events:</span>
