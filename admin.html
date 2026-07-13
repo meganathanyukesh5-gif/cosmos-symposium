@@ -942,6 +942,22 @@
                 reg.status = 'Approved';
                 localStorage.setItem('cosmos_registrations', JSON.stringify(registrationsList));
                 
+                // Open system mail client pre-filled with ticket info directed to phantasm.mech@gmail.com
+                const emailSubject = encodeURIComponent(`National Level Symposium GCE Bargur - Ticket Approved for ${reg.name}`);
+                const emailBody = encodeURIComponent(
+                    `Dear Coordinators,\n\n` +
+                    `The following registration has been APPROVED. Here are the attendee details:\n\n` +
+                    `- Name: ${reg.name}\n` +
+                    `- Email: ${reg.email}\n` +
+                    `- Mobile Number: ${reg.phone || 'N/A'}\n` +
+                    `- College Name: ${reg.college}\n` +
+                    `- Registration / Roll No: ${reg.regNo}\n` +
+                    `- UTR (Paid): ${reg.txnId}\n\n` +
+                    `Best regards,\n` +
+                    `Cosmos '26 Symposium Dashboard`
+                );
+                window.location.href = `mailto:phantasm.mech@gmail.com?subject=${emailSubject}&body=${emailBody}`;
+
                 // Show Verification Toast Notification
                 showEmailToast(reg.name);
                 
@@ -1040,8 +1056,8 @@
                     <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
                 </div>
                 <div style="text-align: left;">
-                    <h5 style="margin: 0; font-size: 0.85rem; font-weight: 700; color: var(--text-primary);">Registration Verified!</h5>
-                    <p style="margin: 0.15rem 0 0; font-size: 0.75rem; color: var(--text-secondary);">Pass approved for: ${escapeHTML(name)}</p>
+                    <h5 style="margin: 0; font-size: 0.85rem; font-weight: 700; color: var(--text-primary);">Email Client Opened!</h5>
+                    <p style="margin: 0.15rem 0 0; font-size: 0.75rem; color: var(--text-secondary);">Ticket details pre-filled for: phantasm.mech@gmail.com</p>
                 </div>
             `;
             document.body.appendChild(toast);
