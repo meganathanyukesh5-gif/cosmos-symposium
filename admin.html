@@ -931,6 +931,7 @@
         function loadDashboardData() {
             try {
                 registrationsList = JSON.parse(localStorage.getItem('cosmos_registrations')) || [];
+                console.log("DATABASE: Current registrations retrieved:", registrationsList);
             } catch (e) {
                 registrationsList = [];
                 console.error("Local storage read error", e);
