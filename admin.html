@@ -612,8 +612,35 @@
                 <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.25rem;">Government College of Engineering, Bargur</p>
             </div>
             <div>
+                <button onclick="toggleSettings()" class="logout-btn" style="background: rgba(0, 242, 254, 0.08); border-color: rgba(0, 242, 254, 0.2); color: var(--accent-cyan); margin-right: 0.5rem;"><i data-lucide="settings" style="width: 14px; height: 14px; vertical-align: middle; margin-right: 4px;"></i> Email Settings</button>
                 <button id="logoutBtn" class="logout-btn">Log Out</button>
             </div>
+        </div>
+
+        <!-- Email settings config -->
+        <div id="settingsPanel" style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 1.5rem; border-radius: 16px; margin-bottom: 2rem; display: none;">
+            <h3 style="margin-top: 0; font-family: 'Orbitron', sans-serif; font-size: 1.05rem; color: var(--accent-cyan); display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="settings" style="width: 18px; height: 18px;"></i> EmailJS Automatic Dispatcher Settings</h3>
+            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.4;">
+                To send ticket invitation emails **automatically in the background** when clicking Verify, create a free account at 
+                <a href="https://www.emailjs.com/" target="_blank" style="color: var(--accent-cyan); text-decoration: underline;">emailjs.com</a>, 
+                link your email service (e.g. Gmail), create an email template, and paste your keys below. 
+                <em>(If keys are left empty, verifying a registration will open your system email app (mailto:) pre-filled with the ticket details instead).</em>
+            </p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;">
+                <div class="input-group" style="margin-bottom: 0;">
+                    <label style="font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Public Key</label>
+                    <input type="text" id="emailjsPublicKey" placeholder="e.g. user_x89Jhd...">
+                </div>
+                <div class="input-group" style="margin-bottom: 0;">
+                    <label style="font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Service ID</label>
+                    <input type="text" id="emailjsServiceId" placeholder="e.g. service_gmail">
+                </div>
+                <div class="input-group" style="margin-bottom: 0;">
+                    <label style="font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Template ID</label>
+                    <input type="text" id="emailjsTemplateId" placeholder="e.g. template_invitation">
+                </div>
+            </div>
+            <button onclick="saveSettings()" class="btn" style="width: auto; padding: 0.5rem 1.5rem; font-size: 0.85rem; border-radius: 8px;">Save Configurations</button>
         </div>
 
         <!-- Testing Warning Banner explaining LocalStorage scope -->
@@ -900,6 +927,32 @@
             }
         }
 
+        // 4. Settings Panel toggle & save functions
+        window.toggleSettings = function() {
+            const panel = document.getElementById('settingsPanel');
+            if (panel.style.display === 'none') {
+                document.getElementById('emailjsPublicKey').value = localStorage.getItem('emailjs_public_key') || '';
+                document.getElementById('emailjsServiceId').value = localStorage.getItem('emailjs_service_id') || '';
+                document.getElementById('emailjsTemplateId').value = localStorage.getItem('emailjs_template_id') || '';
+                panel.style.display = 'block';
+            } else {
+                panel.style.display = 'none';
+            }
+        };
+
+        window.saveSettings = function() {
+            const pubKey = document.getElementById('emailjsPublicKey').value.trim();
+            const servId = document.getElementById('emailjsServiceId').value.trim();
+            const tempId = document.getElementById('emailjsTemplateId').value.trim();
+
+            localStorage.setItem('emailjs_public_key', pubKey);
+            localStorage.setItem('emailjs_service_id', servId);
+            localStorage.setItem('emailjs_template_id', tempId);
+
+            alert("Email settings saved successfully!");
+            document.getElementById('settingsPanel').style.display = 'none';
+        };
+
         // Load data from localStorage
         function loadDashboardData() {
             try {
@@ -984,19 +1037,45 @@
                     `Organizing Committee\n` +
                     `Government College of Engineering, Bargur`;
                 
-                // Set fallback modal values
-                document.getElementById('fallbackTo').value = reg.email;
-                document.getElementById('fallbackSubject').value = subjectText;
-                document.getElementById('fallbackBody').value = bodyText;
-                
-                // Show fallback modal
-                document.getElementById('emailFallbackModal').classList.add('active');
-                
-                // Attempt mailto trigger
-                window.location.href = `mailto:${reg.email}?subject=${encodeURIComponent(subjectText)}&body=${encodeURIComponent(bodyText)}`;
+                // Check EmailJS Configurations
+                const pubKey = localStorage.getItem('emailjs_public_key');
+                const serviceId = localStorage.getItem('emailjs_service_id');
+                const templateId = localStorage.getItem('emailjs_template_id');
 
-                // Show Verification Toast Notification
-                showEmailToast(reg.name, reg.email);
+                if (pubKey && serviceId && templateId) {
+                    // Send Email automatically via EmailJS
+                    emailjs.init(pubKey);
+                    
+                    emailjs.send(serviceId, templateId, {
+                        to_name: reg.name,
+                        to_email: reg.email,
+                        college_name: reg.college,
+                        reg_no: reg.regNo,
+                        phone_no: reg.phone || 'N/A',
+                        utr_no: reg.txnId
+                    }).then(function(response) {
+                        console.log('EMAIL SENT AUTOMATICALLY:', response.status, response.text);
+                    }, function(error) {
+                        console.error('EmailJS Failed:', error);
+                    });
+                    
+                    // Show automatic email confirmation toast
+                    showEmailToast(reg.name, reg.email, true);
+                } else {
+                    // Set fallback modal values
+                    document.getElementById('fallbackTo').value = reg.email;
+                    document.getElementById('fallbackSubject').value = subjectText;
+                    document.getElementById('fallbackBody').value = bodyText;
+                    
+                    // Show fallback modal
+                    document.getElementById('emailFallbackModal').classList.add('active');
+                    
+                    // Attempt mailto trigger
+                    window.location.href = `mailto:${reg.email}?subject=${encodeURIComponent(subjectText)}&body=${encodeURIComponent(bodyText)}`;
+
+                    // Show Verification Toast Notification
+                    showEmailToast(reg.name, reg.email, false);
+                }
                 
                 // Reload dashboard data
                 loadDashboardData();
@@ -1092,7 +1171,7 @@
         };
 
         // Verification toast helper
-        function showEmailToast(name, email) {
+        function showEmailToast(name, email, isAuto = false) {
             // Remove previous if exists
             const prev = document.getElementById('emailToast');
             if (prev) prev.remove();
@@ -1101,13 +1180,16 @@
             toast.id = 'emailToast';
             toast.className = 'toast-notification';
             
+            const titleText = isAuto ? "Ticket Sent Automatically!" : "Email Client Opened!";
+            const descText = isAuto ? `Pass PDF emailed to: ${escapeHTML(email)}` : `Ticket details pre-filled for: ${escapeHTML(email)}`;
+            
             toast.innerHTML = `
                 <div class="toast-icon" style="background: rgba(74, 222, 128, 0.1); color: #4ade80;">
                     <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
                 </div>
                 <div style="text-align: left;">
-                    <h5 style="margin: 0; font-size: 0.85rem; font-weight: 700; color: var(--text-primary);">Email Client Opened!</h5>
-                    <p style="margin: 0.15rem 0 0; font-size: 0.75rem; color: var(--text-secondary);">Ticket details pre-filled for: ${escapeHTML(email)}</p>
+                    <h5 style="margin: 0; font-size: 0.85rem; font-weight: 700; color: var(--text-primary);">${titleText}</h5>
+                    <p style="margin: 0.15rem 0 0; font-size: 0.75rem; color: var(--text-secondary);">${descText}</p>
                 </div>
             `;
             document.body.appendChild(toast);
