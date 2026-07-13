@@ -942,24 +942,27 @@
                 reg.status = 'Approved';
                 localStorage.setItem('cosmos_registrations', JSON.stringify(registrationsList));
                 
-                // Open system mail client pre-filled with ticket info directed to phantasm.mech@gmail.com
-                const emailSubject = encodeURIComponent(`National Level Symposium GCE Bargur - Ticket Approved for ${reg.name}`);
+                // Open system mail client pre-filled with ticket info directed to the student's email
+                const emailSubject = encodeURIComponent(`National Level Symposium GCE Bargur - Registration Approved!`);
                 const emailBody = encodeURIComponent(
-                    `Dear Coordinators,\n\n` +
-                    `The following registration has been APPROVED. Here are the attendee details:\n\n` +
-                    `- Name: ${reg.name}\n` +
-                    `- Email: ${reg.email}\n` +
-                    `- Mobile Number: ${reg.phone || 'N/A'}\n` +
+                    `Dear ${reg.name},\n\n` +
+                    `Congratulations! Your payment has been verified, and your registration for the National Level Symposium GCE Bargur has been APPROVED.\n\n` +
+                    `Here are your ticket details:\n` +
+                    `- Venue: Campus Auditorium, GCE Bargur\n` +
+                    `- Dates: September 10-11, 2026\n` +
                     `- College Name: ${reg.college}\n` +
                     `- Registration / Roll No: ${reg.regNo}\n` +
+                    `- Mobile Number: ${reg.phone || 'N/A'}\n` +
                     `- UTR (Paid): ${reg.txnId}\n\n` +
+                    `Please show this email or your printed pass at the entry gates on September 10.\n\n` +
                     `Best regards,\n` +
-                    `Cosmos '26 Symposium Dashboard`
+                    `Organizing Committee\n` +
+                    `Government College of Engineering, Bargur`
                 );
-                window.location.href = `mailto:phantasm.mech@gmail.com?subject=${emailSubject}&body=${emailBody}`;
+                window.location.href = `mailto:${reg.email}?subject=${emailSubject}&body=${emailBody}`;
 
                 // Show Verification Toast Notification
-                showEmailToast(reg.name);
+                showEmailToast(reg.name, reg.email);
                 
                 // Reload dashboard data
                 loadDashboardData();
@@ -1042,7 +1045,7 @@
         };
 
         // Verification toast helper
-        function showEmailToast(name) {
+        function showEmailToast(name, email) {
             // Remove previous if exists
             const prev = document.getElementById('emailToast');
             if (prev) prev.remove();
@@ -1057,7 +1060,7 @@
                 </div>
                 <div style="text-align: left;">
                     <h5 style="margin: 0; font-size: 0.85rem; font-weight: 700; color: var(--text-primary);">Email Client Opened!</h5>
-                    <p style="margin: 0.15rem 0 0; font-size: 0.75rem; color: var(--text-secondary);">Ticket details pre-filled for: phantasm.mech@gmail.com</p>
+                    <p style="margin: 0.15rem 0 0; font-size: 0.75rem; color: var(--text-secondary);">Ticket details pre-filled for: ${escapeHTML(email)}</p>
                 </div>
             `;
             document.body.appendChild(toast);
