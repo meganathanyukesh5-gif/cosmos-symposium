@@ -785,6 +785,32 @@
         </div>
     </div>
 
+    <!-- EMAIL FALLBACK MODAL -->
+    <div id="emailFallbackModal" class="modal-overlay">
+        <div class="modal-card" style="max-width: 500px; padding: 2rem; text-align: left;">
+            <h3 style="font-family: 'Orbitron', sans-serif; font-size: 1.1rem; font-weight: 700; margin-top: 0; margin-bottom: 0.5rem; color: var(--accent-cyan); display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="mail"></i> Send Ticket to Student</h3>
+            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.4;">
+                A pre-filled email draft has been opened in your default email client. If your email application did not open automatically, copy the pre-filled details below to send it manually:
+            </p>
+            <div class="input-group">
+                <label style="font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase;">To (Recipient)</label>
+                <input type="text" id="fallbackTo" readonly style="background: rgba(255,255,255,0.03); color: var(--text-primary); border: 1px solid var(--border-color); width: 100%; box-sizing: border-box; padding: 0.5rem 0.75rem; border-radius: 8px;">
+            </div>
+            <div class="input-group">
+                <label style="font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase;">Subject</label>
+                <input type="text" id="fallbackSubject" readonly style="background: rgba(255,255,255,0.03); color: var(--text-primary); border: 1px solid var(--border-color); width: 100%; box-sizing: border-box; padding: 0.5rem 0.75rem; border-radius: 8px;">
+            </div>
+            <div class="input-group">
+                <label style="font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase;">Message Body</label>
+                <textarea id="fallbackBody" readonly style="background: rgba(255,255,255,0.03); color: var(--text-primary); width: 100%; height: 160px; font-family: monospace; font-size: 0.8rem; border: 1px solid var(--border-color); border-radius: 8px; padding: 0.5rem; box-sizing: border-box; resize: none;"></textarea>
+            </div>
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button onclick="copyFallbackEmail()" class="btn" style="background: var(--grad-primary); border: none; color: #050510; font-weight: 700;">Copy Content</button>
+                <button onclick="closeFallbackModal()" class="btn" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: var(--text-primary); box-shadow: none;">Close Dialog</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
@@ -942,10 +968,9 @@
                 reg.status = 'Approved';
                 localStorage.setItem('cosmos_registrations', JSON.stringify(registrationsList));
                 
-                // Open system mail client pre-filled with ticket info directed to the student's email
-                const emailSubject = encodeURIComponent(`National Level Symposium GCE Bargur - Registration Approved!`);
-                const emailBody = encodeURIComponent(
-                    `Dear ${reg.name},\n\n` +
+                // Construct mail contents
+                const subjectText = `National Level Symposium GCE Bargur - Registration Approved!`;
+                const bodyText = `Dear ${reg.name},\n\n` +
                     `Congratulations! Your payment has been verified, and your registration for the National Level Symposium GCE Bargur has been APPROVED.\n\n` +
                     `Here are your ticket details:\n` +
                     `- Venue: Campus Auditorium, GCE Bargur\n` +
@@ -957,9 +982,18 @@
                     `Please show this email or your printed pass at the entry gates on September 10.\n\n` +
                     `Best regards,\n` +
                     `Organizing Committee\n` +
-                    `Government College of Engineering, Bargur`
-                );
-                window.location.href = `mailto:${reg.email}?subject=${emailSubject}&body=${emailBody}`;
+                    `Government College of Engineering, Bargur`;
+                
+                // Set fallback modal values
+                document.getElementById('fallbackTo').value = reg.email;
+                document.getElementById('fallbackSubject').value = subjectText;
+                document.getElementById('fallbackBody').value = bodyText;
+                
+                // Show fallback modal
+                document.getElementById('emailFallbackModal').classList.add('active');
+                
+                // Attempt mailto trigger
+                window.location.href = `mailto:${reg.email}?subject=${encodeURIComponent(subjectText)}&body=${encodeURIComponent(bodyText)}`;
 
                 // Show Verification Toast Notification
                 showEmailToast(reg.name, reg.email);
@@ -969,6 +1003,19 @@
             } catch (err) {
                 console.error("Verification error:", err);
             }
+        };
+
+        window.closeFallbackModal = function() {
+            document.getElementById('emailFallbackModal').classList.remove('active');
+        };
+
+        window.copyFallbackEmail = function() {
+            const bodyText = document.getElementById('fallbackBody').value;
+            navigator.clipboard.writeText(bodyText).then(() => {
+                alert("Email message copied to clipboard! You can now paste it in Gmail or Outlook.");
+            }).catch(err => {
+                console.error("Copy failed:", err);
+            });
         };
 
         // Global ticket pass preview popup trigger
