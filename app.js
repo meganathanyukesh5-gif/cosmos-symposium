@@ -195,17 +195,27 @@ function initPaymentFlow() {
 
     // Step 2a: UPI Verification Click
     verifyUpiBtn.addEventListener('click', () => {
-        processPaymentSimulation();
+        const utrField = document.getElementById('upiUtr');
+        const utrValue = utrField.value.trim();
+
+        // Validate 12-digit numeric code
+        if (!/^\d{12}$/.test(utrValue)) {
+            alert("Please enter a valid 12-digit UPI Ref / UTR Number.");
+            utrField.focus();
+            return;
+        }
+
+        processPaymentSimulation(utrValue);
     });
 
     // Step 2b: Card Form Submission
     cardForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        processPaymentSimulation();
+        processPaymentSimulation(); // runs with empty parameter -> generates random ID
     });
 
     // Step 3: Simulate Payment Handshake Delay
-    function processPaymentSimulation() {
+    function processPaymentSimulation(enteredTxn = '') {
         // Toggle spinner view
         switchPaymentPane('loading');
         
@@ -223,9 +233,12 @@ function initPaymentFlow() {
             modalReg.innerText = userData.regNo;
             modalPhone.innerText = userData.phone;
             
-            // Generate mock Txn code
-            const randomCode = Math.floor(100000000 + Math.random() * 900000000);
-            const txnId = `TXN-${randomCode}-GCEB`;
+            // Generate mock Txn if card checkout, or use UTR
+            let txnId = enteredTxn;
+            if (!txnId) {
+                const randomCode = Math.floor(100000000 + Math.random() * 900000000);
+                txnId = `TXN-${randomCode}-GCEB`;
+            }
             modalTxn.innerText = txnId;
 
             // Save Registration to LocalStorage Database
@@ -250,6 +263,10 @@ function initPaymentFlow() {
             successModal.classList.add('active');
             regForm.reset();
             cardForm.reset();
+            
+            // Reset UTR input field
+            const utrField = document.getElementById('upiUtr');
+            if (utrField) utrField.value = '';
         }, 2500); // 2.5 second simulate processing lag
     }
 
