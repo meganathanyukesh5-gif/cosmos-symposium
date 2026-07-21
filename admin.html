@@ -909,7 +909,9 @@
                 if (confirm("Are you sure you want to clear all registrations? This action is irreversible.")) {
                     if (confirm("Type 'CONFIRM' to clear all data:")) {
                         localStorage.removeItem('cosmos_registrations');
-                        loadDashboardData();
+                        fetch('http://localhost:5000/api/clear', { method: 'POST' })
+                            .then(() => loadDashboardData())
+                            .catch(() => loadDashboardData());
                     }
                 }
             });
@@ -953,17 +955,26 @@
             document.getElementById('settingsPanel').style.display = 'none';
         };
 
-        // Load data from localStorage
+        // Load data from Backend API (with LocalStorage fallback)
         function loadDashboardData() {
-            try {
-                registrationsList = JSON.parse(localStorage.getItem('cosmos_registrations')) || [];
-                console.log("DATABASE: Current registrations retrieved:", registrationsList);
-            } catch (e) {
-                registrationsList = [];
-                console.error("Local storage read error", e);
-            }
-            renderTable(registrationsList);
-            updateStats(registrationsList);
+            fetch('http://localhost:5000/api/registrations')
+                .then(res => res.json())
+                .then(data => {
+                    registrationsList = data;
+                    console.log("API DATABASE: Registrations retrieved:", registrationsList);
+                    renderTable(registrationsList);
+                    updateStats(registrationsList);
+                })
+                .catch(err => {
+                    console.warn("Backend API offline, loading from local memory fallback:", err);
+                    try {
+                        registrationsList = JSON.parse(localStorage.getItem('cosmos_registrations')) || [];
+                    } catch (e) {
+                        registrationsList = [];
+                    }
+                    renderTable(registrationsList);
+                    updateStats(registrationsList);
+                });
         }
 
         // Render registrations in table rows
@@ -1017,68 +1028,23 @@
                 
                 const reg = registrationsList[idx];
                 
-                // Update status locally
-                reg.status = 'Approved';
-                localStorage.setItem('cosmos_registrations', JSON.stringify(registrationsList));
-                
-                // Construct mail contents
-                const subjectText = `National Level Symposium GCE Bargur - Registration Approved!`;
-                const bodyText = `Dear ${reg.name},\n\n` +
-                    `Congratulations! Your payment has been verified, and your registration for the National Level Symposium GCE Bargur has been APPROVED.\n\n` +
-                    `Here are your ticket details:\n` +
-                    `- Venue: Campus Auditorium, GCE Bargur\n` +
-                    `- Dates: September 10-11, 2026\n` +
-                    `- College Name: ${reg.college}\n` +
-                    `- Registration / Roll No: ${reg.regNo}\n` +
-                    `- Mobile Number: ${reg.phone || 'N/A'}\n` +
-                    `- UTR (Paid): ${reg.txnId}\n\n` +
-                    `Please show this email or your printed pass at the entry gates on September 10.\n\n` +
-                    `Best regards,\n` +
-                    `Organizing Committee\n` +
-                    `Government College of Engineering, Bargur`;
-                
-                // Check EmailJS Configurations
-                const pubKey = localStorage.getItem('emailjs_public_key');
-                const serviceId = localStorage.getItem('emailjs_service_id');
-                const templateId = localStorage.getItem('emailjs_template_id');
-
-                if (pubKey && serviceId && templateId) {
-                    // Send Email automatically via EmailJS
-                    emailjs.init(pubKey);
-                    
-                    emailjs.send(serviceId, templateId, {
-                        to_name: reg.name,
-                        to_email: reg.email,
-                        college_name: reg.college,
-                        reg_no: reg.regNo,
-                        phone_no: reg.phone || 'N/A',
-                        utr_no: reg.txnId
-                    }).then(function(response) {
-                        console.log('EMAIL SENT AUTOMATICALLY:', response.status, response.text);
-                    }, function(error) {
-                        console.error('EmailJS Failed:', error);
-                    });
-                    
-                    // Show automatic email confirmation toast
+                // Call backend verification API
+                fetch('http://localhost:5000/api/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ txnId: txnId })
+                }).then(res => res.json())
+                .then(resData => {
+                    console.log("Backend verification & email response:", resData);
                     showEmailToast(reg.name, reg.email, true);
-                } else {
-                    // Set fallback modal values
-                    document.getElementById('fallbackTo').value = reg.email;
-                    document.getElementById('fallbackSubject').value = subjectText;
-                    document.getElementById('fallbackBody').value = bodyText;
-                    
-                    // Show fallback modal
-                    document.getElementById('emailFallbackModal').classList.add('active');
-                    
-                    // Attempt mailto trigger
-                    window.location.href = `mailto:${reg.email}?subject=${encodeURIComponent(subjectText)}&body=${encodeURIComponent(bodyText)}`;
-
-                    // Show Verification Toast Notification
+                    loadDashboardData();
+                }).catch(err => {
+                    console.warn("Backend API offline, falling back to local verification:", err);
+                    reg.status = 'Approved';
+                    localStorage.setItem('cosmos_registrations', JSON.stringify(registrationsList));
                     showEmailToast(reg.name, reg.email, false);
-                }
-                
-                // Reload dashboard data
-                loadDashboardData();
+                    loadDashboardData();
+                });
             } catch (err) {
                 console.error("Verification error:", err);
             }

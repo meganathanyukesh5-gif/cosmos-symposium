@@ -719,24 +719,35 @@
                     }
                     if (modalTxn) modalTxn.innerText = txnId;
 
-                    // Save Registration to LocalStorage Database
-                    try {
-                        const registrations = JSON.parse(localStorage.getItem('cosmos_registrations')) || [];
-                        const newRegistration = {
-                            name: userData.name,
-                            email: emailInputVal,
-                            phone: userData.phone,
-                            college: userData.college,
-                            regNo: userData.regNo,
-                            txnId: txnId,
-                            status: enteredTxn ? "Pending" : "Approved", // Card pay approved instantly, UPI pending verification
-                            date: new Date().toLocaleString()
-                        };
-                        registrations.push(newRegistration);
-                        localStorage.setItem('cosmos_registrations', JSON.stringify(registrations));
-                    } catch (err) {
-                        console.error("Local storage save failed:", err);
-                    }
+                    // Save Registration to Backend API Database
+                    const payload = {
+                        name: userData.name,
+                        email: emailInputVal,
+                        phone: userData.phone,
+                        college: userData.college,
+                        regNo: userData.regNo,
+                        txnId: txnId
+                    };
+
+                    fetch('http://localhost:5000/api/register', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    }).then(res => res.json())
+                    .then(data => {
+                        console.log("Backend register response:", data);
+                    }).catch(err => {
+                        console.warn("Backend server connection failed, storing locally as fallback:", err);
+                        try {
+                            const registrations = JSON.parse(localStorage.getItem('cosmos_registrations')) || [];
+                            payload.status = 'Pending';
+                            payload.date = new Date().toLocaleDateString();
+                            registrations.unshift(payload);
+                            localStorage.setItem('cosmos_registrations', JSON.stringify(registrations));
+                        } catch (e) {
+                            console.error("Fallback save failed:", e);
+                        }
+                    });
 
                     // Open Success receipt modal
                     successModal.classList.add('active');
