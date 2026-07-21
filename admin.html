@@ -1045,9 +1045,32 @@
                     showEmailToast(reg.name, reg.email, true);
                     loadDashboardData();
                 }).catch(err => {
-                    console.warn("Backend API offline, falling back to local verification:", err);
+                    console.warn("Backend API offline or blocked by HTTPS security, opening mail draft fallback:", err);
                     reg.status = 'Approved';
                     localStorage.setItem('cosmos_registrations', JSON.stringify(registrationsList));
+
+                    // Construct mail contents
+                    const subjectText = `National Level Symposium GCE Bargur - Registration Approved!`;
+                    const bodyText = `Dear ${reg.name},\n\n` +
+                        `Congratulations! Your payment has been verified, and your registration for the National Level Symposium GCE Bargur has been APPROVED.\n\n` +
+                        `Here are your ticket details:\n` +
+                        `- Venue: Campus Auditorium, GCE Bargur\n` +
+                        `- Dates: September 10-11, 2026\n` +
+                        `- College Name: ${reg.college}\n` +
+                        `- Registration / Roll No: ${reg.regNo}\n` +
+                        `- Mobile Number: ${reg.phone || 'N/A'}\n` +
+                        `- UTR (Paid): ${reg.txnId}\n\n` +
+                        `Please show this email or your printed pass at the entry gates on September 10.\n\n` +
+                        `Best regards,\n` +
+                        `Organizing Committee\n` +
+                        `Government College of Engineering, Bargur`;
+
+                    document.getElementById('fallbackTo').value = reg.email;
+                    document.getElementById('fallbackSubject').value = subjectText;
+                    document.getElementById('fallbackBody').value = bodyText;
+                    document.getElementById('emailFallbackModal').classList.add('active');
+                    window.location.href = `mailto:${reg.email}?subject=${encodeURIComponent(subjectText)}&body=${encodeURIComponent(bodyText)}`;
+
                     showEmailToast(reg.name, reg.email, false);
                     loadDashboardData();
                 });

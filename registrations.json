@@ -1,1 +1,12 @@
-[]
+[
+  {
+    "name": "Yukesh Meganathan",
+    "email": "meganathanyukesh5@gmail.com",
+    "phone": "1234567890",
+    "college": "etert",
+    "regNo": "RGERGERGR",
+    "txnId": "123469575525",
+    "status": "Approved",
+    "date": "Jul 21, 2026"
+  }
+]
